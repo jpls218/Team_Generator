@@ -9,7 +9,7 @@ const OUTPUT_DIR = path.resolve(__dirname, "output");
 const outputPath = path.join(OUTPUT_DIR, "team.html");
 
 const render = require("./lib/htmlRenderer");
-
+let team = [];
 function appMenu(){
     function createManager() {
         console.log("Please build your team");
@@ -23,7 +23,7 @@ function appMenu(){
             {
                 type:"input",
                 name:"managerId",
-                message:"What is your manager’s id"
+                message:"What is your manager’s id?"
                 //Validate user input
             },
             {
@@ -34,45 +34,106 @@ function appMenu(){
             },
             {
                 type:"input",
-                name:"managerOfficeNum",
+                name:"managerOfficeNumber",
                 message: "What is your manager’s office number?"
                 //Validate user input
             },
+            {
+                type:"list",
+                name:"moreEmployees",
+                message: "Would you like to add more employees?",
+                choices: ["Yes", "No"],
+                //Validate user input
+            },
         ]).then(answers => {
-            const manager = new Manager(answers.managerName, answers.managerID, answers.managerEmail, answers.managerOfficeNumber);
+            const manager = new Manager(answers.managerName, answers.managerId, answers.managerEmail, answers.managerOfficeNumber);
             console.log(manager);
+            team.push(manager);
+            if (answers.moreEmployees == "Yes") {
+                createTeam();
+            } else {
+                console.log("Thank you!");
+            }
         });
     }
-    function createEngineer() {
-        console.log("Please build your team");
+    createManager();
+    function createTeam() {
+        
         inquirer.prompt([
             {
-                type:"input",
-                name:"engineerName",
-                message:"What is your engineer’s name?"
+                type:"list",
+                name:"employeeRole",
+                message:"What is your employee's role?",
+                choices: ["Engineer", "Intern"]
+                
                 //Validate user input
             },
             {
                 type:"input",
-                name:"engineerId",
-                message:"What is your engineer’s id"
+                name:"employeeName",
+                message:"What is your employee's name?"
+                
                 //Validate user input
             },
             {
                 type:"input",
-                name:"engineerEmail",
-                message:"What is your engineer’s email address?"
+                name:"employeeId",
+                message:"What is your employee’s id?"
+                //Validate user input
+            },
+            {
+                type:"input",
+                name:"employeeEmail",
+                message:"What is your employee’s email address?"
                 //Validate user input
             },
             {
                 type:"input",
                 name:"engineerGithub",
-                message:"What is your engineer’s github account?"
+                message:"What is your engineer’s github account?",
+                when: (answer) => {
+                    return answer.employeeRole == "Engineer";
+                }
+                //Validate user input
+            },
+            {
+                type:"input",
+                name:"internSchool",
+                message:"What is your intern's school?",
+                when: (answer) => {
+                    return answer.employeeRole == "Intern";
+                }
+                //Validate user input
+            },
+            {
+                type:"list",
+                name:"moreEmployees",
+                message: "Would you like to add more employees?",
+                choices: ["Yes", "No"],
                 //Validate user input
             },
         ]).then(answers => {
-            const engineer = new Engineer(answers.engineerName, answers.engineerID, answers.engineerEmail, answers.engineerGithub);
-            console.log(engineer);
+            const engineer = new Engineer(answers.employeeName, answers.employeeId, answers.employeeEmail, answers.engineerGithub);
+            const intern = new Intern(answers.employeeName, answers.employeeId, answers.employeeEmail, answers.internSchool);
+            if (answers.employeeRole == "Engineer") {
+                console.log(engineer);
+                team.push(engineer);
+            } else if (answers.employeeRole == "Intern") {
+                console.log(intern);
+                team.push(intern);
+            }
+            
+            if (answers.moreEmployees == "Yes") {
+                createTeam();
+            } else {
+                buildHTML();
+            }
+        });
+    }
+    function buildHTML() {
+        var html = render(team);
+        fs.writeFile("./team.html", html, function (err) {
+            if (err) throw err;
         });
     }
 }
